@@ -10,8 +10,8 @@
       {{ props.selectedUpgrade.emoji }}
     </div>
 
-    <div v-if="props.upgrade" class="flex flex-col items-center">
-      <span v-bind:class="`pb-1 ${upgradeDeath ? 'animate-ping' : ''}`">
+    <div v-if="props.upgrade" class="flex flex-col items-center" :title="props.upgrade.name">
+      <span v-bind:class="`pb-1 ${upgradeDeath ? 'animate-ping' : ''} ${upgradeLaunchedAttack ? 'animate-spin' : ''}`">
         {{ props.upgrade.emoji }}
       </span>
 
@@ -19,7 +19,7 @@
         v-if="props.upgrade.maxLife && props.upgrade.life" :max="props.upgrade.maxLife" :value="props.upgrade.life" />
     </div>
 
-    <div v-if="props.enemy" v-bind:class="`flex flex-col items-center ${enemyDamage ? 'animate-ping' : ''}`">
+    <div v-if="props.enemy" v-bind:class="`flex flex-col items-center ${enemyDamage ? 'animate-ping' : ''}`" :title="props.enemy.name">
       <span v-bind:class="`pb-1 ${enemyDeath ? 'animate-bounce' : ''}`">
         {{ props.enemy.emoji }}
       </span>
@@ -57,6 +57,14 @@ const upgradeLife = computed(() => {
 
 const enemyDamage = ref(false)
 const enemyDeath = ref(false)
+
+const upgradeLaunchedAttack = computed(() => {
+  if (!props.upgrade) {
+    return
+  }
+
+  return props.upgrade.launchedAttack
+})
 
 watch(upgradeLife, (newLife, oldLife) => {
   if (newLife === oldLife) {

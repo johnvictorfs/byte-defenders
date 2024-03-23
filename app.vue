@@ -76,7 +76,7 @@ import { moneyAsCurrency, memoryFormatter } from '~/utils/formatters'
 
 const memory = ref(4 * 1024 * 1024 * 1024)
 
-const money = ref(0)
+const money = ref(150)
 const moneyFormatted = computed(() => moneyAsCurrency(money.value))
 
 function downloadRam(value: number) {
@@ -119,14 +119,27 @@ function gameLoop(timestamp: number) {
 
 function generateEnemies() {
   const random = Math.random();
-  if (random < 0.9) {
+  if (random < 0.8) {
     const enemy = {
       id: crypto.randomUUID(),
       name: 'Basic Virus',
       life: 30,
       maxLife: 30,
       damage: 5,
-      emoji: '🦠'
+      emoji: '🦠',
+      speed: 1
+    };
+    const randomColumn = Math.floor(Math.random() * 8);
+    boardMatrix.value[randomColumn][7].enemy = enemy;
+  } else if (random < 0.9) {
+    const enemy = {
+      id: crypto.randomUUID(),
+      name: 'Advanced Virus',
+      life: 50,
+      maxLife: 50,
+      damage: 15,
+      emoji: '🧬',
+      speed: 1
     };
     const randomColumn = Math.floor(Math.random() * 8);
     boardMatrix.value[randomColumn][7].enemy = enemy;
@@ -136,6 +149,34 @@ function generateEnemies() {
 function moveEnemies() {
   boardMatrix.value.forEach((row, y) => {
     row.forEach((cell, x) => {
+      if (cell.upgrade) {
+        if (cell.enemy && cell.upgrade.attack) {
+          // Attack enemy in current cell
+          cell.enemy.life -= cell.upgrade.attack;
+        }
+
+        // Try to attack first enemy in range
+        if (cell.upgrade.attackRange && cell.upgrade.attack) {
+          for (let i = 1; i <= cell.upgrade.attackRange; i++) {
+            if (x + i >= 8) {
+              break
+            }
+  
+            const enemy = boardMatrix.value[y][x + i].enemy
+            if (enemy) {
+              cell.upgrade.launchedAttack = true
+              setTimeout(() => {
+                if (cell.upgrade) {
+                  cell.upgrade.launchedAttack = false
+                }
+              }, 500)
+              enemy.life -= cell.upgrade.attack
+              break
+            }
+          }
+        }
+      }
+
       if (cell.enemy) {
         const reachedServer = x === 0;
         if (reachedServer) {
@@ -150,23 +191,13 @@ function moveEnemies() {
           return;
         }
 
-        const nextDefender = cell.upgrade;
-
-        if (nextDefender) {
-          if (cell.enemy.damage && nextDefender.life !== undefined) {
-            nextDefender.life -= cell.enemy.damage;
-          }
-
-          if (nextDefender.attack) {
-            cell.enemy.life -= nextDefender.attack;
-          }
-
-          return;
+        if (cell.upgrade && cell.enemy.damage && cell.upgrade.life !== undefined) {
+          cell.upgrade.life -= cell.enemy.damage;
+        } else {
+          // Move up the board
+          boardMatrix.value[y][x - cell.enemy.speed].enemy = cell.enemy;
+          killCell(x, y, 'enemy');
         }
-
-        // Move up
-        boardMatrix.value[y][x - 1].enemy = cell.enemy;
-        killCell(x, y, 'enemy');
       }
     });
   });
@@ -264,7 +295,8 @@ const upgradeCosts: Upgrade[] = [
     upgradeType: 'software',
     life: 200,
     maxLife: 200,
-    attack: 30
+    attack: 30,
+    attackRange: 4
   },
   {
     name: 'Cyber Security Engineer',

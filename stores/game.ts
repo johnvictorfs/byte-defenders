@@ -11,6 +11,7 @@ export type Upgrade ={
   maxLife?: number
   attack?: number
   attackRange?: number
+  launchedAttack?: boolean
 }
 
 export type Enemy = {
@@ -20,6 +21,7 @@ export type Enemy = {
   maxLife: number
   damage: number
   emoji: string
+  speed: number
 }
 
 // export const useMyGameStore = defineStore({
