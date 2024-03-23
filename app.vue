@@ -42,14 +42,20 @@
 
       <div class="flex flex-col p-4 rounded-lg bg-gray-800 shadow-lg">
         <div class="grid grid-cols-8 gap-2">
-          <div v-for="(server, serverIndex) in serverRow" :key="serverIndex" class="flex justify-center p-4 rounded-lg bg-gray-500 shadow-lg">
-            {{ server.emoji }}
+          <div v-for="(server, serverIndex) in serverRow" :key="serverIndex"
+            class="flex justify-center p-4 rounded-lg bg-gray-500 shadow-lg">
+            <div v-if="server.owned">
+              ❌
+            </div>
+            <div v-else>
+              {{ server.emoji }}
+            </div>
           </div>
 
           <div v-for="(row, rowIndex) in boardMatrix" :key="rowIndex" class="flex flex-col">
-            <div v-for="({ upgrade }, cellIndex) in row" :key="upgrade?.name || cellIndex">
-              <BoardTile :x="cellIndex" :y="rowIndex" :upgrade="upgrade" :selectedUpgrade="selectedUpgrade"
-                :placeUpgrade="placeUpgrade" />
+            <div v-for="({ upgrade, enemy }, cellIndex) in row" :key="`${upgrade?.id}-${enemy?.id}-${rowIndex}-${cellIndex}`">
+              <BoardTile :x="cellIndex" :y="rowIndex" :enemy="enemy" :upgrade="upgrade"
+                :selectedUpgrade="selectedUpgrade" :placeUpgrade="placeUpgrade" />
             </div>
           </div>
         </div>
@@ -59,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Upgrade } from '@/stores/game'
+import type { Upgrade, Enemy } from '@/stores/game'
 import BoardTile from '~/components/game/BoardTile.vue'
 import DownloadRam from '~/components/game/DownloadRam.vue'
 import UpgradeButton from '~/components/game/UpgradeButton.vue';
@@ -74,6 +80,92 @@ function downloadRam(value: number) {
   memory.value += value
 }
 
+function killCell(x: number, y: number, type: 'enemy' | 'upgrade') {
+  boardMatrix.value[y][x][type] = undefined
+}
+
+onMounted(() => {
+  const generateEnemiesInterval = setInterval(() => {
+    const random = Math.random()
+    if (random < 0.9) {
+      const enemy: Enemy = {
+        id: crypto.randomUUID(),
+        name: 'Basic Virus',
+        life: 30,
+        maxLife: 30,
+        damage: 5,
+        emoji: '🦠',
+        moved: false
+      }
+
+      const randomColumn = Math.floor(Math.random() * 8)
+      // TODO: columns and rows are reversed
+      boardMatrix.value[randomColumn][7].enemy = enemy
+    }
+  }, 2500)
+
+  const walkInterval = setInterval(() => {
+    // Move enemies up
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const enemy = boardMatrix.value[y][x].enemy
+        if (enemy) {
+          if (enemy.moved) {
+            continue
+          }
+
+          enemy.moved = true;
+          const reachedServer = x === 0
+
+          if (reachedServer) {
+            if (serverRow.value[y].owned) {
+              alert('Game over!')
+              clearInterval(walkInterval)
+              return
+            }
+
+            serverRow.value[y].owned = true
+            killCell(x, y, 'enemy')
+            return
+          }
+
+          const nextDefender = boardMatrix.value[y][x - 1].upgrade
+
+          if (nextDefender?.life) {
+            if (enemy.damage) {
+              nextDefender.life -= enemy.damage
+              if (nextDefender.life <= 0) {
+                killCell(x, y - 1, 'upgrade')
+              }
+            }
+
+            if (nextDefender.attack) {
+              enemy.life -= nextDefender.attack
+              if (enemy.life <= 0) {
+                killCell(x, y, 'enemy')
+              }
+            }
+
+            return
+          }
+
+          boardMatrix.value[y][x - 1].enemy = enemy
+          killCell(x, y, 'enemy')
+        }
+      }
+    }
+
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const enemy = boardMatrix.value[y][x].enemy
+        if (enemy) {
+          enemy.moved = false
+        }
+      }
+    }
+  }, 1500)
+})
+
 const selectedUpgrade = ref<Upgrade | null>(null)
 function selectUpgrade(upgrade: Upgrade) {
   if (upgrade.name === selectedUpgrade.value?.name) {
@@ -84,15 +176,9 @@ function selectUpgrade(upgrade: Upgrade) {
   selectedUpgrade.value = upgrade
 }
 
-type Enemy = {
-  name: string
-  health: number
-  damage: number
-}
-
 type CellValue = {
   upgrade?: Upgrade
-  virus?: Enemy
+  enemy?: Enemy
 }
 
 const serverRow = ref([
@@ -126,9 +212,12 @@ function placeUpgrade(x: number, y: number) {
     return
   }
 
-  boardMatrix.value[y][x].upgrade = selectedUpgrade.value
-  memory.value -= selectedUpgrade.value.costMemory
-  money.value -= selectedUpgrade.value.costMoney
+  const upgradeClone = { ...selectedUpgrade.value }
+  upgradeClone.id = crypto.randomUUID()
+
+  boardMatrix.value[y][x].upgrade = upgradeClone
+  memory.value -= upgradeClone.costMemory
+  money.value -= upgradeClone.costMoney
   selectedUpgrade.value = null
 }
 

@@ -1,6 +1,7 @@
 // import { defineStore } from 'pinia'
 
 export type Upgrade ={
+  id?: string
   name: string
   costMemory: number
   costMoney: number
@@ -9,6 +10,16 @@ export type Upgrade ={
   life?: number
   maxLife?: number
   attack?: number
+}
+
+export type Enemy = {
+  id?: string
+  name: string
+  life: number
+  maxLife: number
+  damage: number
+  emoji: string
+  moved: boolean
 }
 
 // export const useMyGameStore = defineStore({
