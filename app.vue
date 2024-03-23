@@ -200,22 +200,22 @@ function moveEnemies() {
       }
 
       if (cell.enemy) {
-        const reachedServer = x === 0;
-        if (reachedServer) {
-          if (serverRow.value[y].owned) {
-            alert('Game over! Refresh the page to play again');
-            cancelAnimationFrame(rafId);
-            return;
-          }
-
-          serverRow.value[y].owned = true;
-          killCell(x, y, 'enemy');
-          return;
-        }
-
         if (cell.upgrade && cell.enemy.damage && cell.upgrade.life !== undefined) {
           cell.upgrade.life -= cell.enemy.damage;
         } else {
+          const reachedServer = x === 0;
+
+          if (reachedServer) {
+            if (serverRow.value[y].owned) {
+              alert('Game over! Refresh the page to play again');
+              cancelAnimationFrame(rafId);
+              return;
+            }
+
+            serverRow.value[y].owned = true;
+            killCell(x, y, 'enemy');
+            return;
+          }
           // Move up the board
           boardMatrix.value[y][x - cell.enemy.speed].enemy = cell.enemy;
           killCell(x, y, 'enemy');
