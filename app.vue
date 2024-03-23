@@ -53,7 +53,8 @@
           </div>
 
           <div v-for="(row, rowIndex) in boardMatrix" :key="rowIndex" class="flex flex-col">
-            <div v-for="({ upgrade, enemy }, cellIndex) in row" :key="`${upgrade?.id}-${enemy?.id}-${rowIndex}-${cellIndex}`">
+            <div v-for="({ upgrade, enemy }, cellIndex) in row"
+              :key="`${upgrade?.id}-${enemy?.id}-${rowIndex}-${cellIndex}`">
               <BoardTile :x="cellIndex" :y="rowIndex" :enemy="enemy" :upgrade="upgrade"
                 :selectedUpgrade="selectedUpgrade" :placeUpgrade="placeUpgrade" />
             </div>
@@ -84,87 +85,99 @@ function killCell(x: number, y: number, type: 'enemy' | 'upgrade') {
   boardMatrix.value[y][x][type] = undefined
 }
 
+let lastFrameTime = performance.now();
+let rafId: number;
+let enemyGenerationTimer = 0;
+let moveEnemiesTimer = 0;
+
+function gameLoop(timestamp: number) {
+  const deltaTime = timestamp - lastFrameTime;
+  lastFrameTime = timestamp;
+
+  enemyGenerationTimer += deltaTime;
+  moveEnemiesTimer += deltaTime;
+
+  if (enemyGenerationTimer >= 4500) {
+    generateEnemies();
+    enemyGenerationTimer = 0;
+  }
+
+  if (moveEnemiesTimer >= 2500) {
+    moveEnemies();
+    moveEnemiesTimer = 0;
+  }
+
+  // Request next frame
+  rafId = requestAnimationFrame(gameLoop);
+}
+
+function generateEnemies() {
+  const random = Math.random();
+  if (random < 0.9) {
+    const enemy = {
+      id: crypto.randomUUID(),
+      name: 'Basic Virus',
+      life: 30,
+      maxLife: 30,
+      damage: 5,
+      emoji: '🦠'
+    };
+    const randomColumn = Math.floor(Math.random() * 8);
+    boardMatrix.value[randomColumn][7].enemy = enemy;
+  }
+}
+
+function moveEnemies() {
+  boardMatrix.value.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      if (cell.enemy) {
+        const reachedServer = x === 0;
+        if (reachedServer) {
+          if (serverRow.value[y].owned) {
+            alert('Game over!');
+            cancelAnimationFrame(rafId);
+            return;
+          }
+
+          serverRow.value[y].owned = true;
+          killCell(x, y, 'enemy');
+          return;
+        }
+
+        const nextDefender = boardMatrix.value[y][x - 1].upgrade;
+        if (nextDefender?.life) {
+          if (cell.enemy.damage) {
+            nextDefender.life -= cell.enemy.damage;
+            if (nextDefender.life <= 0) {
+              killCell(x, y, 'upgrade');
+              console.log('killed upgrade', boardMatrix.value[x][y])
+            }
+          }
+
+          if (nextDefender.attack) {
+            cell.enemy.life -= nextDefender.attack;
+            if (cell.enemy.life <= 0) {
+              killCell(x, y, 'enemy');
+            }
+          }
+
+          return;
+        }
+
+        boardMatrix.value[y][x - 1].enemy = cell.enemy;
+        killCell(x, y, 'enemy');
+      }
+    });
+  });
+}
+
 onMounted(() => {
-  const generateEnemiesInterval = setInterval(() => {
-    const random = Math.random()
-    if (random < 0.9) {
-      const enemy: Enemy = {
-        id: crypto.randomUUID(),
-        name: 'Basic Virus',
-        life: 30,
-        maxLife: 30,
-        damage: 5,
-        emoji: '🦠',
-        moved: false
-      }
+  rafId = requestAnimationFrame(gameLoop);
+});
 
-      const randomColumn = Math.floor(Math.random() * 8)
-      // TODO: columns and rows are reversed
-      boardMatrix.value[randomColumn][7].enemy = enemy
-    }
-  }, 2500)
-
-  const walkInterval = setInterval(() => {
-    // Move enemies up
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        const enemy = boardMatrix.value[y][x].enemy
-        if (enemy) {
-          if (enemy.moved) {
-            continue
-          }
-
-          enemy.moved = true;
-          const reachedServer = x === 0
-
-          if (reachedServer) {
-            if (serverRow.value[y].owned) {
-              alert('Game over!')
-              clearInterval(walkInterval)
-              return
-            }
-
-            serverRow.value[y].owned = true
-            killCell(x, y, 'enemy')
-            return
-          }
-
-          const nextDefender = boardMatrix.value[y][x - 1].upgrade
-
-          if (nextDefender?.life) {
-            if (enemy.damage) {
-              nextDefender.life -= enemy.damage
-              if (nextDefender.life <= 0) {
-                killCell(x, y - 1, 'upgrade')
-              }
-            }
-
-            if (nextDefender.attack) {
-              enemy.life -= nextDefender.attack
-              if (enemy.life <= 0) {
-                killCell(x, y, 'enemy')
-              }
-            }
-
-            return
-          }
-
-          boardMatrix.value[y][x - 1].enemy = enemy
-          killCell(x, y, 'enemy')
-        }
-      }
-    }
-
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        const enemy = boardMatrix.value[y][x].enemy
-        if (enemy) {
-          enemy.moved = false
-        }
-      }
-    }
-  }, 1500)
-})
+onUnmounted(() => {
+  cancelAnimationFrame(rafId);
+});
 
 const selectedUpgrade = ref<Upgrade | null>(null)
 function selectUpgrade(upgrade: Upgrade) {

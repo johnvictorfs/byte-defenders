@@ -19,7 +19,6 @@ export type Enemy = {
   maxLife: number
   damage: number
   emoji: string
-  moved: boolean
 }
 
 // export const useMyGameStore = defineStore({
