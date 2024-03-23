@@ -50,9 +50,15 @@
             <div v-for="(upgrade, cellIndex) in row" :key="upgrade?.name || cellIndex" v-bind:class="`
                 flex justify-center items-center rounded-lg bg-gray-700 shadow-lg w-16 h-16 mt-2
                 ${selectedUpgrade && !upgrade ? 'hover:bg-green-900 cursor-pointer' : ''}
-              `" @click="placeUpgrade(cellIndex, rowIndex)">
+              `" @click="placeUpgrade(cellIndex, rowIndex)" @mouseover="hoveringTile = { x: cellIndex, y: rowIndex }"
+              @mouseleave="hoveringTile = null">
               <div v-if="upgrade">
                 {{ upgrade.emoji }}
+              </div>
+
+              <div class="opacity-40"
+                v-else-if="selectedUpgrade && hoveringTile && hoveringTile.x === cellIndex && hoveringTile.y === rowIndex">
+                {{ selectedUpgrade.emoji }}
               </div>
             </div>
           </div>
@@ -80,6 +86,8 @@ function selectUpgrade(upgrade: Upgrade) {
 
   selectedUpgrade.value = upgrade
 }
+
+const hoveringTile = ref<null | { x: number, y: number }>(null)
 
 const boardMatrix = ref<((null | Upgrade)[][])>([
   [null, null, null, null, null, null, null, null],
