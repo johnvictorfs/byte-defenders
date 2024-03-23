@@ -22,26 +22,12 @@
       <div class="flex flex-col p-4 rounded-lg bg-gray-800 shadow-lg">
         <div class="space-y-4">
           <div v-for="upgrade in upgradeCosts" :key="upgrade.name" class="flex justify-between">
-            <button v-bind:class="`
-                px-4 py-2 rounded-lg shadow-lg w-full
-                ${canAfford(upgrade) ? 'hover:bg-green-900' : 'cursor-not-allowed'}
-                ${canAfford(upgrade) ? 'bg-green-800' : 'bg-gray-600'}
-                ${selectedUpgrade?.name === upgrade.name ? 'border-2 border-green-500' : 'border-2 border-gray-800'}
-              `" :disabled="!canAfford(upgrade)" @click="selectUpgrade(upgrade)">
-              <span class="font-bold">
-                {{ upgrade.name }} {{ upgrade.emoji }}
-              </span>
-
-              <span class="text-gray-300">
-                <div v-if="upgrade.costMoney > 0">
-                  {{ moneyAsCurrency(upgrade.costMoney) }}
-                </div>
-
-                <div v-if="upgrade.costMemory > 0">
-                  {{ memoryFormatter(upgrade.costMemory) }}
-                </div>
-              </span>
-            </button>
+            <UpgradeButton
+              :upgrade="upgrade"
+              :selectedUpgrade="selectedUpgrade"
+              :canAfford="canAfford"
+              :selectUpgrade="selectUpgrade"
+            />
           </div>
         </div>
       </div>
@@ -64,6 +50,8 @@
 import type { Upgrade } from '@/stores/game'
 import BoardTile from '~/components/game/BoardTile.vue'
 import DownloadRam from '~/components/game/DownloadRam.vue'
+import UpgradeButton from '~/components/game/UpgradeButton.vue';
+import { moneyAsCurrency, memoryFormatter } from '~/utils/formatters'
 
 const memory = ref(4 * 1024 * 1024 * 1024)
 
@@ -108,25 +96,6 @@ function placeUpgrade(x: number, y: number) {
   memory.value -= selectedUpgrade.value.costMemory
   money.value -= selectedUpgrade.value.costMoney
   selectedUpgrade.value = null
-}
-
-function moneyAsCurrency(value: number) {
-  return value.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  })
-}
-
-function memoryFormatter(bytes: number, decimals = 0) {
-  if (!+bytes) return '0 Bytes'
-
-  const k = 1024
-  const dm = decimals < 0 ? 0 : decimals
-  const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
 const upgradeCosts: Upgrade[] = [
