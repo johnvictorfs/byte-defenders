@@ -203,7 +203,7 @@ function moveEnemies() {
         const reachedServer = x === 0;
         if (reachedServer) {
           if (serverRow.value[y].owned) {
-            alert('Game over!');
+            alert('Game over! Refresh the page to play again');
             cancelAnimationFrame(rafId);
             return;
           }
