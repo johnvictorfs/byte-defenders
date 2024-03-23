@@ -11,15 +11,17 @@
     </div>
 
     <div v-if="props.upgrade" class="flex flex-col items-center">
-      <div class="pb-1">
+      <span v-bind:class="`pb-1 ${upgradeDeath ? 'animate-ping' : ''}`">
         {{ props.upgrade.emoji }}
-      </div>
+      </span>
 
       <LoadingBar :color="upgradeLifePercentage > 50 ? 'green' : 'yellow'" v-if="props.upgrade.maxLife && props.upgrade.life" :max="props.upgrade.maxLife" :value="props.upgrade.life" />
     </div>
 
     <div v-if="props.enemy" v-bind:class="`flex flex-col items-center ${enemyDamage ? 'animate-ping' : ''}`">
-      {{ props.enemy.emoji }}
+      <span v-bind:class="`pb-1 ${enemyDeath ? 'animate-bounce' : ''}`">
+        {{ props.enemy.emoji }}
+      </span>
       <LoadingBar color="red" v-if="props.enemy.maxLife && props.enemy.life" :max="props.enemy.maxLife" :value="props.enemy.life" />
     </div>
   </div>
@@ -34,13 +36,42 @@ const isHovering = ref(false)
 const props = defineProps<{
   x: number,
   y: number,
+  killCell: (x: number, y: number, type: 'enemy' | 'upgrade') => void,
   enemy?: Enemy | null,
   upgrade?: Upgrade | null,
   selectedUpgrade?: Upgrade | null,
   placeUpgrade: (x: number, y: number) => void,
 }>()
 
+const upgradeDeath = ref(false)
+
+const upgradeLife = computed(() => {
+  if (!props.upgrade) {
+    return 0
+  }
+
+  return props.upgrade.life
+})
+
 const enemyDamage = ref(false)
+const enemyDeath = ref(false)
+
+watch(upgradeLife, (newLife, oldLife) => {
+  if (newLife === oldLife || !newLife) {
+    return
+  }
+
+  upgradeDeath.value = true
+  setTimeout(() => {
+    upgradeDeath.value = false
+  }, 200)
+
+  if (newLife <= 0) {
+    setTimeout(() => {
+      props.killCell(props.x, props.y, 'upgrade')
+    }, 200)
+  }
+})
 
 const enemyLife = computed(() => {
   if (!props.enemy) {
@@ -59,6 +90,13 @@ watch(enemyLife, (newLife, oldLife) => {
   setTimeout(() => {
     enemyDamage.value = false
   }, 200)
+
+  if (newLife <= 0) {
+    setTimeout(() => {
+
+      props.killCell(props.x, props.y, 'enemy')
+    }, 200)
+  }
 })
 
 const upgradeLifePercentage = computed(() => {

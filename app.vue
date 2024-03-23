@@ -56,7 +56,7 @@
           <div v-for="(row, rowIndex) in boardMatrix" :key="rowIndex" class="flex flex-col">
             <div v-for="({ upgrade, enemy }, cellIndex) in row"
               :key="`${upgrade?.id}-${enemy?.id}-${rowIndex}-${cellIndex}`">
-              <BoardTile :x="cellIndex" :y="rowIndex" :enemy="enemy" :upgrade="upgrade"
+              <BoardTile :killCell="killCell" :x="cellIndex" :y="rowIndex" :enemy="enemy" :upgrade="upgrade"
                 :selectedUpgrade="selectedUpgrade" :placeUpgrade="placeUpgrade" />
             </div>
           </div>
@@ -155,22 +155,16 @@ function moveEnemies() {
         if (nextDefender?.life) {
           if (cell.enemy.damage) {
             nextDefender.life -= cell.enemy.damage;
-            if (nextDefender.life <= 0) {
-              killCell(x, y, 'upgrade');
-              console.log('killed upgrade', boardMatrix.value[x][y])
-            }
           }
 
           if (nextDefender.attack) {
             cell.enemy.life -= nextDefender.attack;
-            if (cell.enemy.life <= 0) {
-              killCell(x, y, 'enemy');
-            }
           }
 
           return;
         }
 
+        // Move up
         boardMatrix.value[y][x - 1].enemy = cell.enemy;
         killCell(x, y, 'enemy');
       }

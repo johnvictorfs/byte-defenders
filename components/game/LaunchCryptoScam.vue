@@ -22,7 +22,7 @@ const props = defineProps<{
   launchScam: (value: number) => void
 }>()
 
-const LAUNCH_COOLDOWN = 120
+const LAUNCH_COOLDOWN = 60
 const currentCooldown = ref(0)
 
 const launchCryptoScam = () => {
@@ -36,7 +36,7 @@ const launchCryptoScam = () => {
     currentCooldown.value--
 
     if (currentCooldown.value === 0) {
-      props.launchScam(200)
+      props.launchScam(300)
       clearInterval(cooldownInterval)
     }
   }, 1000)
