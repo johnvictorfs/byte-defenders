@@ -15,14 +15,16 @@
         {{ props.upgrade.emoji }}
       </span>
 
-      <LoadingBar :color="upgradeLifePercentage > 50 ? 'green' : 'yellow'" v-if="props.upgrade.maxLife && props.upgrade.life" :max="props.upgrade.maxLife" :value="props.upgrade.life" />
+      <LoadingBar :color="upgradeLifePercentage > 50 ? 'green' : 'yellow'"
+        v-if="props.upgrade.maxLife && props.upgrade.life" :max="props.upgrade.maxLife" :value="props.upgrade.life" />
     </div>
 
     <div v-if="props.enemy" v-bind:class="`flex flex-col items-center ${enemyDamage ? 'animate-ping' : ''}`">
       <span v-bind:class="`pb-1 ${enemyDeath ? 'animate-bounce' : ''}`">
         {{ props.enemy.emoji }}
       </span>
-      <LoadingBar color="red" v-if="props.enemy.maxLife && props.enemy.life" :max="props.enemy.maxLife" :value="props.enemy.life" />
+      <LoadingBar color="red" v-if="props.enemy.maxLife && props.enemy.life" :max="props.enemy.maxLife"
+        :value="props.enemy.life" />
     </div>
   </div>
 </template>
@@ -57,16 +59,16 @@ const enemyDamage = ref(false)
 const enemyDeath = ref(false)
 
 watch(upgradeLife, (newLife, oldLife) => {
-  if (newLife === oldLife || !newLife) {
+  if (newLife === oldLife) {
     return
   }
 
-  upgradeDeath.value = true
-  setTimeout(() => {
-    upgradeDeath.value = false
-  }, 200)
+  if (newLife !== undefined && newLife <= 0) {
+    upgradeDeath.value = true
+    setTimeout(() => {
+      upgradeDeath.value = false
+    }, 200)
 
-  if (newLife <= 0) {
     setTimeout(() => {
       props.killCell(props.x, props.y, 'upgrade')
     }, 200)
@@ -92,8 +94,9 @@ watch(enemyLife, (newLife, oldLife) => {
   }, 200)
 
   if (newLife <= 0) {
-    setTimeout(() => {
+    enemyDeath.value = true
 
+    setTimeout(() => {
       props.killCell(props.x, props.y, 'enemy')
     }, 200)
   }

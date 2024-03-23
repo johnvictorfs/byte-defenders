@@ -152,8 +152,8 @@ function moveEnemies() {
 
         const nextDefender = cell.upgrade;
 
-        if (nextDefender?.life) {
-          if (cell.enemy.damage) {
+        if (nextDefender) {
+          if (cell.enemy.damage && nextDefender.life !== undefined) {
             nextDefender.life -= cell.enemy.damage;
           }
 
