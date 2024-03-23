@@ -1,18 +1,18 @@
 <template>
   <div class="p-4 space-y-4">
     <div class="flex space-x-4">
-      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg">
-        Free Memory
-        <div class="pl-4">
-          {{ memoryFormatter(memory) }}
-        </div>
+      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2">
+        <span class="font-bold">
+          Free Memory
+        </span>
+        {{ memoryFormatter(memory) }}
       </div>
 
-      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg">
-        Money
-        <div class="pl-4">
-          {{ moneyFormatted }}
-        </div>
+      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2">
+        <span class="font-bold">
+          Money
+        </span>
+        {{ moneyFormatted }}
       </div>
 
       <DownloadRam :downloadRam="downloadRam" />

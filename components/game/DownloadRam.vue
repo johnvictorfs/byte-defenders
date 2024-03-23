@@ -5,7 +5,7 @@
     ${!currentDownloadRamCooldown ? 'bg-blue-900' : 'bg-gray-600'}
   `" :disabled="currentDownloadRamCooldown > 0" @click="buyMemory">
   <div class="flex">
-    <ArrowDownTray v-bind:class="`w-6 h-6 mr-3 mt-2 ${!currentDownloadRamCooldown ? 'animate-bounce' : ''}`" />
+    <ArrowDownTray v-bind:class="`w-6 h-6 mr-3 mt-2 ${currentDownloadRamCooldown ? 'animate-bounce' : ''}`" />
     <span>
       Download Ram
       <LoadingBar :value="currentDownloadRamCooldown" :max="DOWNLOAD_RAM_COOLDOWN" />
@@ -36,10 +36,9 @@ const buyMemory = () => {
     currentDownloadRamCooldown.value--
 
     if (currentDownloadRamCooldown.value === 0) {
+      props.downloadRam(1024 * 1024 * 1024)
       clearInterval(cooldownInterval)
     }
   }, 1000)
-
-  props.downloadRam(1024 * 1024 * 1024)
 }
 </script>
