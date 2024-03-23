@@ -3,7 +3,7 @@
     <div class="flex space-x-4">
       <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2">
         <span class="font-bold">
-          Free Memory
+          Memory
         </span>
         {{ memoryFormatter(memory) }}
       </div>
@@ -144,7 +144,8 @@ function moveEnemies() {
           return;
         }
 
-        const nextDefender = boardMatrix.value[y][x - 1].upgrade;
+        const nextDefender = cell.upgrade;
+
         if (nextDefender?.life) {
           if (cell.enemy.damage) {
             nextDefender.life -= cell.enemy.damage;

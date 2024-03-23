@@ -3,13 +3,14 @@
     v-bind:class="`
       flex justify-center items-center rounded-lg bg-gray-700 shadow-lg w-16 h-16 mt-2
       ${props.selectedUpgrade && !props.upgrade ? 'hover:bg-green-900 cursor-pointer' : ''}
+      ${props.upgrade && props.enemy ? 'animate-bounce' : ''}
     `">
 
-    <div v-if="props.selectedUpgrade && isHovering && !hasUpgrade" class="flex flex-col items-center opacity-30">
+    <div v-if="props.selectedUpgrade && isHovering && !props.upgrade" class="flex flex-col items-center opacity-30">
       {{ props.selectedUpgrade.emoji }}
     </div>
 
-    <div v-if="hasUpgrade && props.upgrade" class="flex flex-col items-center">
+    <div v-if="props.upgrade" class="flex flex-col items-center">
       <div class="pb-1">
         {{ props.upgrade.emoji }}
       </div>
@@ -46,6 +47,4 @@ const upgradeLifePercentage = computed(() => {
 
   return (props.upgrade.life / props.upgrade.maxLife) * 100
 })
-
-const hasUpgrade = computed(() => !!props.upgrade && props.upgrade.life && props.upgrade.life > 0)
 </script>
