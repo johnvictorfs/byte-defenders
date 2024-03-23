@@ -21,21 +21,33 @@
     <div class="flex space-x-4">
       <div class="flex flex-col p-4 rounded-lg bg-gray-800 shadow-lg">
         <div class="space-y-4">
+          <div class="w-full flex gap-2">
+            <button class="w-full px-4 py-2 rounded-lg shadow-lg bg-gray-600">
+              Uninstall 🗑️
+            </button>
+
+            <button class="w-full px-4 py-2 rounded-lg shadow-lg bg-gray-600">
+              Fire 🪓
+            </button>
+          </div>
+
+          <hr />
+
           <div v-for="upgrade in upgradeCosts" :key="upgrade.name" class="flex justify-between">
-            <UpgradeButton
-              :upgrade="upgrade"
-              :selectedUpgrade="selectedUpgrade"
-              :canAfford="canAfford"
-              :selectUpgrade="selectUpgrade"
-            />
+            <UpgradeButton :upgrade="upgrade" :selectedUpgrade="selectedUpgrade" :canAfford="canAfford"
+              :selectUpgrade="selectUpgrade" />
           </div>
         </div>
       </div>
 
       <div class="flex flex-col p-4 rounded-lg bg-gray-800 shadow-lg">
         <div class="grid grid-cols-8 gap-2">
+          <div v-for="(server, serverIndex) in serverRow" :key="serverIndex" class="flex justify-center p-4 rounded-lg bg-gray-500 shadow-lg">
+            {{ server.emoji }}
+          </div>
+
           <div v-for="(row, rowIndex) in boardMatrix" :key="rowIndex" class="flex flex-col">
-            <div v-for="(upgrade, cellIndex) in row" :key="upgrade?.name || cellIndex">
+            <div v-for="({ upgrade }, cellIndex) in row" :key="upgrade?.name || cellIndex">
               <BoardTile :x="cellIndex" :y="rowIndex" :upgrade="upgrade" :selectedUpgrade="selectedUpgrade"
                 :placeUpgrade="placeUpgrade" />
             </div>
@@ -72,15 +84,37 @@ function selectUpgrade(upgrade: Upgrade) {
   selectedUpgrade.value = upgrade
 }
 
-const boardMatrix = ref<((null | Upgrade)[][])>([
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
+type Enemy = {
+  name: string
+  health: number
+  damage: number
+}
+
+type CellValue = {
+  upgrade?: Upgrade
+  virus?: Enemy
+}
+
+const serverRow = ref([
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+  { emoji: '🖥️', owned: false },
+])
+
+const boardMatrix = ref<((CellValue)[][])>([
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
+  [{}, {}, {}, {}, {}, {}, {}, {}],
 ])
 
 function canAfford(upgrade: Upgrade) {
@@ -88,11 +122,11 @@ function canAfford(upgrade: Upgrade) {
 }
 
 function placeUpgrade(x: number, y: number) {
-  if (!selectedUpgrade.value || !canAfford(selectedUpgrade.value) || boardMatrix.value[y][x]) {
+  if (!selectedUpgrade.value || !canAfford(selectedUpgrade.value) || boardMatrix.value[y][x].upgrade) {
     return
   }
 
-  boardMatrix.value[y][x] = selectedUpgrade.value
+  boardMatrix.value[y][x].upgrade = selectedUpgrade.value
   memory.value -= selectedUpgrade.value.costMemory
   money.value -= selectedUpgrade.value.costMoney
   selectedUpgrade.value = null
@@ -104,24 +138,40 @@ const upgradeCosts: Upgrade[] = [
     costMemory: 500 * 1024 * 1024,
     costMoney: 0,
     emoji: '🔥',
+    upgradeType: 'software',
+    life: 200,
+    maxLife: 200,
+    attack: 0
   },
   {
     name: 'Basic Antivirus',
     costMemory: 100 * 1024 * 1024,
     costMoney: 0,
     emoji: '🛡️',
+    upgradeType: 'software',
+    life: 50,
+    maxLife: 50,
+    attack: 10
   },
   {
     name: 'Premium Antivirus',
     costMemory: 1000 * 1024 * 1024,
     costMoney: 100,
     emoji: '🔰',
+    upgradeType: 'software',
+    life: 200,
+    maxLife: 200,
+    attack: 30
   },
   {
     name: 'Cyber Security Engineer',
     costMemory: 0,
     costMoney: 1000,
     emoji: '👩‍💻',
+    upgradeType: 'person',
+    life: 20,
+    maxLife: 20,
+    attack: 50
   }
 ] as const
 </script>

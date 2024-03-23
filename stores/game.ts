@@ -5,6 +5,10 @@ export type Upgrade ={
   costMemory: number
   costMoney: number
   emoji: string
+  upgradeType: 'software' | 'hardware' | 'person'
+  life?: number
+  maxLife?: number
+  attack?: number
 }
 
 // export const useMyGameStore = defineStore({
