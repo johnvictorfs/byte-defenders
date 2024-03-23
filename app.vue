@@ -14,6 +14,8 @@
           {{ moneyFormatted }}
         </div>
       </div>
+
+      <DownloadRam :downloadRam="downloadRam" />
     </div>
 
     <div class="flex space-x-4">
@@ -22,10 +24,10 @@
           <div v-for="upgrade in upgradeCosts" :key="upgrade.name" class="flex justify-between">
             <button v-bind:class="`
                 px-4 py-2 rounded-lg shadow-lg w-full
-                ${upgrade.canAfford ? 'hover:bg-green-900' : 'cursor-not-allowed'}
-                ${upgrade.canAfford ? 'bg-green-800' : 'bg-gray-600'}
+                ${canAfford(upgrade) ? 'hover:bg-green-900' : 'cursor-not-allowed'}
+                ${canAfford(upgrade) ? 'bg-green-800' : 'bg-gray-600'}
                 ${selectedUpgrade?.name === upgrade.name ? 'border-2 border-green-500' : 'border-2 border-gray-800'}
-              `" :disabled="!upgrade.canAfford" @click="selectUpgrade(upgrade)">
+              `" :disabled="!canAfford(upgrade)" @click="selectUpgrade(upgrade)">
               <span class="font-bold">
                 {{ upgrade.name }} {{ upgrade.emoji }}
               </span>
@@ -47,19 +49,9 @@
       <div class="flex flex-col p-4 rounded-lg bg-gray-800 shadow-lg">
         <div class="grid grid-cols-8 gap-2">
           <div v-for="(row, rowIndex) in boardMatrix" :key="rowIndex" class="flex flex-col">
-            <div v-for="(upgrade, cellIndex) in row" :key="upgrade?.name || cellIndex" v-bind:class="`
-                flex justify-center items-center rounded-lg bg-gray-700 shadow-lg w-16 h-16 mt-2
-                ${selectedUpgrade && !upgrade ? 'hover:bg-green-900 cursor-pointer' : ''}
-              `" @click="placeUpgrade(cellIndex, rowIndex)" @mouseover="hoveringTile = { x: cellIndex, y: rowIndex }"
-              @mouseleave="hoveringTile = null">
-              <div v-if="upgrade">
-                {{ upgrade.emoji }}
-              </div>
-
-              <div class="opacity-40"
-                v-else-if="selectedUpgrade && hoveringTile && hoveringTile.x === cellIndex && hoveringTile.y === rowIndex">
-                {{ selectedUpgrade.emoji }}
-              </div>
+            <div v-for="(upgrade, cellIndex) in row" :key="upgrade?.name || cellIndex">
+              <BoardTile :x="cellIndex" :y="rowIndex" :upgrade="upgrade" :selectedUpgrade="selectedUpgrade"
+                :placeUpgrade="placeUpgrade" />
             </div>
           </div>
         </div>
@@ -69,13 +61,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import type { Upgrade } from '@/stores/game'
+import BoardTile from '~/components/game/BoardTile.vue'
+import DownloadRam from '~/components/game/DownloadRam.vue'
 
 const memory = ref(4 * 1024 * 1024 * 1024)
-const memoryKb = computed(() => memory.value / 1024)
 
 const money = ref(0)
 const moneyFormatted = computed(() => moneyAsCurrency(money.value))
+
+function downloadRam(value: number) {
+  memory.value += value
+}
 
 const selectedUpgrade = ref<Upgrade | null>(null)
 function selectUpgrade(upgrade: Upgrade) {
@@ -86,8 +83,6 @@ function selectUpgrade(upgrade: Upgrade) {
 
   selectedUpgrade.value = upgrade
 }
-
-const hoveringTile = ref<null | { x: number, y: number }>(null)
 
 const boardMatrix = ref<((null | Upgrade)[][])>([
   [null, null, null, null, null, null, null, null],
@@ -100,8 +95,12 @@ const boardMatrix = ref<((null | Upgrade)[][])>([
   [null, null, null, null, null, null, null, null],
 ])
 
+function canAfford(upgrade: Upgrade) {
+  return memory.value >= upgrade.costMemory && money.value >= upgrade.costMoney
+}
+
 function placeUpgrade(x: number, y: number) {
-  if (!selectedUpgrade.value || !selectedUpgrade.value.canAfford || boardMatrix.value[y][x]) {
+  if (!selectedUpgrade.value || !canAfford(selectedUpgrade.value) || boardMatrix.value[y][x]) {
     return
   }
 
@@ -109,14 +108,6 @@ function placeUpgrade(x: number, y: number) {
   memory.value -= selectedUpgrade.value.costMemory
   money.value -= selectedUpgrade.value.costMoney
   selectedUpgrade.value = null
-}
-
-type Upgrade = {
-  name: string,
-  costMemory: number,
-  costMoney: number,
-  canAfford?: boolean,
-  emoji: string,
 }
 
 function moneyAsCurrency(value: number) {
@@ -138,36 +129,32 @@ function memoryFormatter(bytes: number, decimals = 0) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
-const upgradeCosts = computed<Upgrade[]>(() => [
+const upgradeCosts: Upgrade[] = [
   {
     name: 'Firewall',
     costMemory: 500 * 1024 * 1024,
     costMoney: 0,
-    canAfford: memoryKb.value >= 500,
     emoji: '🔥',
   },
   {
     name: 'Basic Antivirus',
     costMemory: 100 * 1024 * 1024,
     costMoney: 0,
-    canAfford: memoryKb.value >= 100,
     emoji: '🛡️',
   },
   {
     name: 'Premium Antivirus',
     costMemory: 1000 * 1024 * 1024,
     costMoney: 100,
-    canAfford: memoryKb.value >= 1000 && money.value >= 100,
     emoji: '🔰',
   },
   {
     name: 'Cyber Security Engineer',
     costMemory: 0,
     costMoney: 1000,
-    canAfford: money.value >= 1000,
     emoji: '👩‍💻',
   }
-])
+] as const
 </script>
 
 <style>
