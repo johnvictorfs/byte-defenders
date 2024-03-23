@@ -18,7 +18,7 @@
       <LoadingBar :color="upgradeLifePercentage > 50 ? 'green' : 'yellow'" v-if="props.upgrade.maxLife && props.upgrade.life" :max="props.upgrade.maxLife" :value="props.upgrade.life" />
     </div>
 
-    <div v-if="props.enemy" class="flex flex-col items-center">
+    <div v-if="props.enemy" v-bind:class="`flex flex-col items-center ${enemyDamage ? 'animate-ping' : ''}`">
       {{ props.enemy.emoji }}
       <LoadingBar color="red" v-if="props.enemy.maxLife && props.enemy.life" :max="props.enemy.maxLife" :value="props.enemy.life" />
     </div>
@@ -39,6 +39,27 @@ const props = defineProps<{
   selectedUpgrade?: Upgrade | null,
   placeUpgrade: (x: number, y: number) => void,
 }>()
+
+const enemyDamage = ref(false)
+
+const enemyLife = computed(() => {
+  if (!props.enemy) {
+    return 0
+  }
+
+  return props.enemy.life
+})
+
+watch(enemyLife, (newLife, oldLife) => {
+  if (newLife === oldLife) {
+    return
+  }
+
+  enemyDamage.value = true
+  setTimeout(() => {
+    enemyDamage.value = false
+  }, 200)
+})
 
 const upgradeLifePercentage = computed(() => {
   if (!props.upgrade || !props.upgrade.life || !props.upgrade.maxLife) {

@@ -10,6 +10,7 @@ export type Upgrade ={
   life?: number
   maxLife?: number
   attack?: number
+  attackRange?: number
 }
 
 export type Enemy = {

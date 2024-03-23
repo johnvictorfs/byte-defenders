@@ -4,14 +4,14 @@
     ${!currentDownloadRamCooldown ? 'hover:bg-blue-900' : 'cursor-not-allowed'}
     ${!currentDownloadRamCooldown ? 'bg-blue-900' : 'bg-gray-600'}
   `" :disabled="currentDownloadRamCooldown > 0" @click="buyMemory">
-  <div class="flex">
-    <ArrowDownTray v-bind:class="`w-6 h-6 mr-3 mt-2 ${currentDownloadRamCooldown ? 'animate-bounce' : ''}`" />
-    <span>
-      Download Ram
-      <LoadingBar :value="currentDownloadRamCooldown" :max="DOWNLOAD_RAM_COOLDOWN" />
-    </span>
-  </div>
-</button>
+    <div class="flex">
+      <ArrowDownTray v-bind:class="`w-6 h-6 mr-3 mt-2 ${currentDownloadRamCooldown ? 'animate-bounce' : ''}`" />
+      <span>
+        Download Ram
+        <LoadingBar :value="currentDownloadRamCooldown" :max="DOWNLOAD_RAM_COOLDOWN" />
+      </span>
+    </div>
+  </button>
 </template>
 
 <script lang="ts" setup>
@@ -41,4 +41,6 @@ const buyMemory = () => {
     }
   }, 1000)
 }
+
+onMounted(buyMemory)
 </script>

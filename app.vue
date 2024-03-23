@@ -16,6 +16,7 @@
       </div>
 
       <DownloadRam :downloadRam="downloadRam" />
+      <LaunchCryptoScam :launchScam="launchCryptoScam" />
     </div>
 
     <div class="flex space-x-4">
@@ -70,6 +71,7 @@ import type { Upgrade, Enemy } from '@/stores/game'
 import BoardTile from '~/components/game/BoardTile.vue'
 import DownloadRam from '~/components/game/DownloadRam.vue'
 import UpgradeButton from '~/components/game/UpgradeButton.vue';
+import LaunchCryptoScam from '~/components/game/LaunchCryptoScam.vue';
 import { moneyAsCurrency, memoryFormatter } from '~/utils/formatters'
 
 const memory = ref(4 * 1024 * 1024 * 1024)
@@ -79,6 +81,10 @@ const moneyFormatted = computed(() => moneyAsCurrency(money.value))
 
 function downloadRam(value: number) {
   memory.value += value
+}
+
+function launchCryptoScam(value: number) {
+  money.value += value
 }
 
 function killCell(x: number, y: number, type: 'enemy' | 'upgrade') {
