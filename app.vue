@@ -56,7 +56,7 @@
           <div v-for="(row, rowIndex) in boardMatrix" :key="rowIndex" class="flex flex-col">
             <div v-for="({ upgrade, enemy }, cellIndex) in row"
               :key="`${upgrade?.id}-${enemy?.id}-${rowIndex}-${cellIndex}`">
-              <BoardTile :killCell="killCell" :x="cellIndex" :y="rowIndex" :enemy="enemy" :upgrade="upgrade"
+              <BoardTile :killCellById="killCellById" :x="cellIndex" :y="rowIndex" :enemy="enemy" :upgrade="upgrade"
                 :selectedUpgrade="selectedUpgrade" :placeUpgrade="placeUpgrade" />
             </div>
           </div>
@@ -89,6 +89,20 @@ function launchCryptoScam(value: number) {
 
 function killCell(x: number, y: number, type: 'enemy' | 'upgrade') {
   boardMatrix.value[y][x][type] = undefined
+}
+
+function killCellById(id: string) {
+  boardMatrix.value.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      if (cell.upgrade?.id === id) {
+        boardMatrix.value[y][x].upgrade = undefined
+      }
+
+      if (cell.enemy?.id === id) {
+        boardMatrix.value[y][x].enemy = undefined
+      }
+    });
+  });
 }
 
 let lastFrameTime = performance.now();
@@ -161,7 +175,7 @@ function moveEnemies() {
             if (x + i >= 8) {
               break
             }
-  
+
             const enemy = boardMatrix.value[y][x + i].enemy
             if (enemy) {
               cell.upgrade.launchedAttack = true
@@ -170,7 +184,15 @@ function moveEnemies() {
                   cell.upgrade.launchedAttack = false
                 }
               }, 500)
+
               enemy.life -= cell.upgrade.attack
+              if (enemy.life <= 0) {
+                setTimeout(() => {
+                  if (enemy?.id) {
+                    killCellById(enemy.id);
+                  }
+                }, 500)
+              }
               break
             }
           }

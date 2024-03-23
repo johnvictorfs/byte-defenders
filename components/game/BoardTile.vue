@@ -38,14 +38,20 @@ const isHovering = ref(false)
 const props = defineProps<{
   x: number,
   y: number,
-  killCell: (x: number, y: number, type: 'enemy' | 'upgrade') => void,
+  killCellById: (id: string) => void,
   enemy?: Enemy | null,
   upgrade?: Upgrade | null,
   selectedUpgrade?: Upgrade | null,
   placeUpgrade: (x: number, y: number) => void,
 }>()
 
-const upgradeDeath = ref(false)
+const upgradeDeath = computed(() => {
+  if (!props.upgrade || props.upgrade.life === undefined) {
+    return false
+  }
+
+  return props.upgrade.life <= 0
+})
 
 const upgradeLife = computed(() => {
   if (!props.upgrade) {
@@ -56,7 +62,13 @@ const upgradeLife = computed(() => {
 })
 
 const enemyDamage = ref(false)
-const enemyDeath = ref(false)
+const enemyDeath = computed(() => {
+  if (!props.enemy) {
+    return false
+  }
+
+  return props.enemy.life <= 0
+})
 
 const upgradeLaunchedAttack = computed(() => {
   if (!props.upgrade) {
@@ -66,19 +78,12 @@ const upgradeLaunchedAttack = computed(() => {
   return props.upgrade.launchedAttack
 })
 
-watch(upgradeLife, (newLife, oldLife) => {
-  if (newLife === oldLife) {
-    return
-  }
-
+watch(upgradeLife, (newLife) => {
   if (newLife !== undefined && newLife <= 0) {
-    upgradeDeath.value = true
     setTimeout(() => {
-      upgradeDeath.value = false
-    }, 200)
-
-    setTimeout(() => {
-      props.killCell(props.x, props.y, 'upgrade')
+      if (props.upgrade?.id) {
+        props.killCellById(props.upgrade.id)
+      }
     }, 200)
   }
 })
@@ -92,6 +97,14 @@ const enemyLife = computed(() => {
 })
 
 watch(enemyLife, (newLife, oldLife) => {
+  if (newLife <= 0) {
+    setTimeout(() => {
+      if (props.enemy?.id) {
+        props.killCellById(props.enemy.id)
+      }
+    }, 200)
+  }
+
   if (newLife === oldLife) {
     return
   }
@@ -100,14 +113,6 @@ watch(enemyLife, (newLife, oldLife) => {
   setTimeout(() => {
     enemyDamage.value = false
   }, 200)
-
-  if (newLife <= 0) {
-    enemyDeath.value = true
-
-    setTimeout(() => {
-      props.killCell(props.x, props.y, 'enemy')
-    }, 200)
-  }
 })
 
 const upgradeLifePercentage = computed(() => {
