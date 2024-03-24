@@ -1,13 +1,13 @@
 <template>
-  <div @click="placeUpgrade(props.x, props.y)" @mouseover="isHovering = true" @mouseleave="isHovering = false"
+  <div @click="gameStateStore.placeUpgrade(props.x, props.y)" @mouseover="isHovering = true" @mouseleave="isHovering = false"
     v-bind:class="`
       flex justify-center items-center rounded-lg bg-gray-700 shadow-lg w-16 h-16 mt-2
-      ${props.selectedUpgrade && !props.upgrade ? 'hover:bg-green-900 cursor-pointer' : ''}
+      ${selectedUpgrade && !props.upgrade ? 'hover:bg-green-900 cursor-pointer' : ''}
       ${props.upgrade && props.enemy ? 'animate-bounce' : ''}
     `">
 
-    <div v-if="props.selectedUpgrade && isHovering && !props.upgrade" class="flex flex-col items-center opacity-30">
-      {{ props.selectedUpgrade.emoji }}
+    <div v-if="selectedUpgrade && isHovering && !props.upgrade" class="flex flex-col items-center opacity-30">
+      {{ selectedUpgrade.emoji }}
     </div>
 
     <div v-if="props.upgrade" class="flex flex-col items-center" :title="props.upgrade.name">
@@ -33,16 +33,16 @@
 import type { Upgrade, Enemy } from '@/stores/game'
 import LoadingBar from '~/components/layout/LoadingBar.vue';
 
+const gameStateStore = useGameStateStore()
+const { selectedUpgrade } = storeToRefs(gameStateStore)
+
 const isHovering = ref(false)
 
 const props = defineProps<{
   x: number,
   y: number,
-  killCellById: (id: string) => void,
   enemy?: Enemy | null,
   upgrade?: Upgrade | null,
-  selectedUpgrade?: Upgrade | null,
-  placeUpgrade: (x: number, y: number) => void,
 }>()
 
 const upgradeDeath = computed(() => {
@@ -82,7 +82,7 @@ watch(upgradeLife, (newLife) => {
   if (newLife !== undefined && newLife <= 0) {
     setTimeout(() => {
       if (props.upgrade?.id) {
-        props.killCellById(props.upgrade.id)
+        gameStateStore.killCellById(props.upgrade.id)
       }
     }, 200)
   }
@@ -100,7 +100,7 @@ watch(enemyLife, (newLife, oldLife) => {
   if (newLife <= 0) {
     setTimeout(() => {
       if (props.enemy?.id) {
-        props.killCellById(props.enemy.id)
+        gameStateStore.killCellById(props.enemy.id)
       }
     }, 200)
   }
