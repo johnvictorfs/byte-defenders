@@ -1,9 +1,9 @@
 <template>
-  <div @click="gameStateStore.placeUpgrade(props.x, props.y)" @mouseover="isHovering = true" @mouseleave="isHovering = false"
-    v-bind:class="`
-      flex justify-center items-center rounded-lg bg-gray-700 shadow-lg w-16 h-16 mt-2
+  <div @click="gameStateStore.placeUpgrade(props.x, props.y)" @mouseover="isHovering = true"
+    @mouseleave="isHovering = false" v-bind:class="`
+      flex justify-center items-center rounded-lg shadow-md w-16 h-16 mt-2 transition-colors
       ${selectedUpgrade && !props.upgrade ? 'hover:bg-green-900 cursor-pointer' : ''}
-      ${props.upgrade && props.enemy ? 'animate-bounce' : ''}
+      ${props.upgrade && props.enemy ? 'animate-pulse' : ''}
     `">
 
     <div v-if="selectedUpgrade && isHovering && !props.upgrade" class="flex flex-col items-center opacity-30">
@@ -19,8 +19,10 @@
         v-if="props.upgrade.maxLife && props.upgrade.life" :max="props.upgrade.maxLife" :value="props.upgrade.life" />
     </div>
 
-    <div v-if="props.enemy" v-bind:class="`flex flex-col items-center ${enemyDamage ? 'animate-ping' : ''}`" :title="props.enemy.name">
-      <span v-bind:class="`pb-1 ${enemyDeath ? 'animate-bounce' : ''}`">
+    <div v-if="props.enemy"
+      v-bind:class="`flex flex-col items-center animate-bounce ${enemyDamage ? 'animate-ping' : ''}`"
+      :title="props.enemy.name">
+      <span v-bind:class="`pb-1 ${enemyDeath ? 'animate-pulse' : ''}`">
         {{ props.enemy.emoji }}
       </span>
       <LoadingBar color="red" v-if="props.enemy.maxLife && props.enemy.life" :max="props.enemy.maxLife"
@@ -30,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Upgrade, Enemy } from '@/stores/game'
+import { useGameStateStore, type Upgrade, type Enemy } from '~/stores/game'
 import LoadingBar from '~/components/layout/LoadingBar.vue';
 
 const gameStateStore = useGameStateStore()

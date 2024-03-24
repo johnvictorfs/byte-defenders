@@ -1,18 +1,18 @@
 <template>
   <div class="p-4 space-y-4 flex flex-col items-center">
     <div class="flex space-x-4">
-      <button class="px-4 py-2 rounded-lg shadow-lg bg-gray-600" @click="gameStateStore.startGame()">
+      <Button @click="gameStateStore.startGame()">
         Reset Game
-      </button>
+      </Button>
 
-      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2">
+      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2 items-center">
         <span class="font-bold">
           Memory
         </span>
         {{ memoryFormatter(resources.memory) }}
       </div>
 
-      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2">
+      <div class="flex p-4 rounded-lg bg-gray-800 shadow-lg gap-2 items-center">
         <span class="font-bold">
           Money
         </span>
@@ -46,15 +46,7 @@
 
       <div class="flex flex-col p-4 rounded-lg bg-gray-800 shadow-lg">
         <div class="grid grid-cols-8 gap-2">
-          <div v-for="(server, serverIndex) in serverRow" :key="serverIndex"
-            class="flex justify-center p-4 rounded-lg bg-gray-500 shadow-lg">
-            <div v-if="server.owned">
-              ❌
-            </div>
-            <div v-else>
-              {{ server.emoji }}
-            </div>
-          </div>
+          <ServerRow />
 
           <div v-for="(row, rowIndex) in boardState" :key="rowIndex" class="flex flex-col">
             <div v-for="({ upgrade, enemy }, cellIndex) in row"
@@ -73,14 +65,15 @@ import BoardTile from '~/components/game/BoardTile.vue'
 import DownloadRam from '~/components/game/DownloadRam.vue'
 import UpgradeButton from '~/components/game/UpgradeButton.vue';
 import LaunchCryptoScam from '~/components/game/LaunchCryptoScam.vue';
+import ServerRow from '~/components/game/ServerRow.vue';
+import Button from '~/components/layout/Button.vue';
 import { moneyAsCurrency, memoryFormatter } from '~/utils/formatters'
 
 const gameStateStore = useGameStateStore()
 const {
   boardState,
   upgradeCosts,
-  resources,
-  serverRow
+  resources
 } = storeToRefs(gameStateStore)
 
 const moneyFormatted = computed(() => moneyAsCurrency(resources.value.money))

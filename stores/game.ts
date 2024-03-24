@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 export type Upgrade = {
   id?: string
   name: string
+  description: string
   costMemory: number
   costMoney: number
   emoji: string
@@ -44,6 +45,7 @@ export const useGameStateStore = defineStore({
     upgradeCosts: [
       {
         name: 'Firewall',
+        description: 'Blocks incoming threats. Does not actively attack.',
         costMemory: 500 * 1024 * 1024,
         costMoney: 0,
         emoji: '🔥',
@@ -54,16 +56,19 @@ export const useGameStateStore = defineStore({
       },
       {
         name: 'Basic Antivirus',
+        description: 'Detects and removes basic threats that are close.',
         costMemory: 100 * 1024 * 1024,
         costMoney: 0,
         emoji: '🛡️',
         upgradeType: 'software',
         life: 50,
         maxLife: 50,
-        attack: 10
+        attack: 10,
+        attackRange: 2
       },
       {
         name: 'Premium Antivirus',
+        description: 'Detects and removes advanced threats from a large distance.',
         costMemory: 1000 * 1024 * 1024,
         costMoney: 100,
         emoji: '🔰',
