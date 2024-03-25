@@ -7,7 +7,7 @@
               `" :disabled="!gameStateStore.canAfford(props.upgrade)"
     @click="gameStateStore.selectUpgrade(props.upgrade)" :title="props.upgrade.description">
     <span class="font-bold">
-      {{ props.upgrade.name }} {{ props.upgrade.emoji }}
+      {{ props.upgrade.name }} <UpgradeImage :upgrade="props.upgrade" />
     </span>
 
     <div class="text-gray-300 flex flex-col text-sm items-center space-y-3">
@@ -37,6 +37,7 @@
 
 <script lang="ts" setup>
 import type { Upgrade } from '~/stores/game'
+import UpgradeImage from '~/components/game/UpgradeImage.vue'
 import { moneyAsCurrency, memoryFormatter } from '~/utils/formatters'
 
 const props = defineProps<{

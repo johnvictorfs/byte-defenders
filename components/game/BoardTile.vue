@@ -7,12 +7,12 @@
     `">
 
     <div v-if="selectedUpgrade && isHovering && !props.upgrade" class="flex flex-col items-center opacity-30">
-      {{ selectedUpgrade.emoji }}
+      <UpgradeImage :upgrade="selectedUpgrade" />
     </div>
 
     <div v-if="props.upgrade" class="flex flex-col items-center" :title="props.upgrade.name">
       <span v-bind:class="`pb-1 ${upgradeDeath ? 'animate-ping' : ''} ${upgradeLaunchedAttack ? 'animate-spin' : ''}`">
-        {{ props.upgrade.emoji }}
+        <UpgradeImage :upgrade="props.upgrade" />
       </span>
 
       <LoadingBar :color="upgradeLifePercentage > 50 ? 'green' : 'yellow'"
@@ -34,6 +34,7 @@
 <script lang="ts" setup>
 import { useGameStateStore, type Upgrade, type Enemy } from '~/stores/game'
 import LoadingBar from '~/components/layout/LoadingBar.vue';
+import UpgradeImage from '~/components/game/UpgradeImage.vue'
 
 const gameStateStore = useGameStateStore()
 const { selectedUpgrade } = storeToRefs(gameStateStore)
